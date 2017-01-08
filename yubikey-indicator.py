@@ -6,7 +6,7 @@ __author__ = "Jeff Channell"
 __copyright__ = "Copyright 2017, Jeff Channell"
 __credits__ = ["Jeff Channell"]
 __license__ = "GPL"
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 __maintainer__ = "Jeff Channell"
 __email__ = "me@jeffchannell.com"
 __status__ = "Prototype"
@@ -45,12 +45,47 @@ class YubikeyIndicator:
 			"{}/icons".format(os.path.dirname(os.path.realpath(__file__)))
 		)
 		indicator.set_status(appindicator.IndicatorStatus.ACTIVE)
+		indicator.set_menu(self.create_menu(False))
+		
+		self.nokey = indicator
+			
+	def add_about_window_contents(self):
+		text = Gtk.Label()
+		text.set_markup(
+			"<b>yubikey-indicator</b>\n\n{}\n\n"
+			"A Yubikey indicator applet for Unity\n\n"
+			"<a href=\"https://github.com/jeffchannell/yubikey-indicator\">"
+			"https://github.com/jeffchannell/yubikey-indicator</a>\n\n"
+			"<small>"
+			"© 2017 Jeff Channell\n\n"
+			"This program comes with absolutely no warranty.\n"
+			"See the GNU General Public License, version 3 or later for details."
+			"</small>".format(__version__)
+		)
+		text.set_line_wrap(True)
+		text.set_justify(Gtk.Justification.CENTER)
+		self.about.add(text)
+		
+	def create_menu(self, prod):
 		menu = Gtk.Menu()
 
 		# add a yubikey-personalization-gui menu item
 		item = Gtk.MenuItem()
 		item.set_label("Open Yubikey Personalization GUI")
 		item.connect("activate", self.run_yubikey_gui)
+		menu.append(item)
+		
+		# sep
+		item = Gtk.SeparatorMenuItem()
+		menu.append(item)
+		
+		# yubikey model
+		item = Gtk.MenuItem()
+		if prod:
+			item.set_label(prod)
+		else:
+			item.set_label("No Yubikey Detected")
+		item.set_sensitive(False)
 		menu.append(item)
 		
 		# sep
@@ -71,26 +106,9 @@ class YubikeyIndicator:
 		
 		# set the menu
 		menu.show_all()
-		indicator.set_menu(menu)
 		
-		self.nokey = indicator
-			
-	def add_about_window_contents(self):
-		text = Gtk.Label()
-		text.set_markup(
-			"<b>About YubikeyIndicator</b>\n\n{}\n\n"
-			"A Yubikey indicator applet for Unity\n\n"
-			"<a href=\"https://github.com/jeffchannell/yubikey-indicator\">"
-			"https://github.com/jeffchannell/yubikey-indicator</a>\n\n"
-			"<small>"
-			"© 2017 Jeff Channell\n\n"
-			"This program comes with absolutely no warranty.\n"
-			"See the GNU General Public License, version 3 or later for details."
-			"</small>".format(__version__)
-		)
-		text.set_line_wrap(True)
-		text.set_justify(Gtk.Justification.CENTER)
-		self.about.add(text)
+		return menu
+		
 			
 	def destroy_about(self, widget, something):
 		self.about = None
@@ -116,43 +134,7 @@ class YubikeyIndicator:
 				"{}/icons".format(os.path.dirname(os.path.realpath(__file__)))
 			)
 			indicator.set_status(appindicator.IndicatorStatus.ACTIVE)
-			menu = Gtk.Menu()
-
-			# add a yubikey-personalization-gui menu item
-			item = Gtk.MenuItem()
-			item.set_label("Open Yubikey Personalization GUI")
-			item.connect("activate", self.run_yubikey_gui)
-			menu.append(item)
-			
-			# sep
-			item = Gtk.SeparatorMenuItem()
-			menu.append(item)
-
-			# yubikey model
-			item = Gtk.MenuItem()
-			item.set_label("Model:\t{}".format(prod))
-			item.connect("activate", self.do_nothing)
-			menu.append(item)
-			
-			# sep
-			item = Gtk.SeparatorMenuItem()
-			menu.append(item)
-			
-			# about me
-			item = Gtk.MenuItem()
-			item.set_label("About")
-			item.connect("activate", self.show_about)
-			menu.append(item)
-			
-			# add a quit menu item
-			item = Gtk.MenuItem()
-			item.set_label("Quit")
-			item.connect("activate", self.quit)
-			menu.append(item)
-			
-			# set the menu
-			menu.show_all()
-			indicator.set_menu(menu)
+			indicator.set_menu(self.create_menu(prod))
 			
 			self.indicators[indicatorKey] = indicator
 		
@@ -206,7 +188,8 @@ class YubikeyIndicator:
 	def show_about(self, widget):
 		if None == self.about:
 			self.about = Gtk.Window()
-			self.about.set_title("About YubikeyInidicator")
+			self.about.set_resizable(False)
+			self.about.set_title("About yubikey-inidicator")
 			self.about.set_keep_above(True)
 			self.about.connect("delete-event", self.destroy_about)
 			self.add_about_window_contents()
